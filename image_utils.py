@@ -4,7 +4,7 @@ Optimized for handling blurry, low-light, and low-resolution packet labels.
 """
 
 import os
-from PIL import Image, ImageOps, ImageEnhance
+from PIL import Image, ImageOps, ImageEnhance, ImageFilter
 from typing import Tuple, Dict, Any
 
 def validate_image_file(uploaded_file) -> Tuple[bool, str]:
@@ -43,7 +43,7 @@ def preprocess_image_for_ocr(img: Image.Image) -> Image.Image:
     """
     Advanced Preprocessing Pipeline for Tesseract OCR:
     1. Converts image to grayscale.
-    2. Enhances contrast and sharpness to fix blurriness.
+    2. Enhances contrast and applies image filtering to fix blurriness.
     3. Auto-resizes low-resolution images for better optical character recognition.
     """
     # Convert to RGB if needed
@@ -64,6 +64,11 @@ def preprocess_image_for_ocr(img: Image.Image) -> Image.Image:
     # Increase contrast to make faded or blurry text pop out
     enhancer_contrast = ImageEnhance.Contrast(gray_img)
     contrast_img = enhancer_contrast.enhance(2.0)
+
+    # Apply unsharp mask to fix blur artifacts securely
+    sharp_img = contrast_img.filter(ImageFilter.UnsharpMask(radius=2, percent=150, threshold=3))
+
+    return sharp_img
 
     # Sharpen image to fix blur artifacts
     enhancer_sharpness = ImageEnhance.Sharpen(contrast_img)
