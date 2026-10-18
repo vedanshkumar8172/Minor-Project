@@ -372,7 +372,7 @@ def extract_nutrition_values(raw_text: str) -> Dict[str, Dict[str, Any]]:
     for nutrient_key, pattern_list in _NUTRITION_PATTERNS.items():
         for pattern in pattern_list:
             result = _extract_numeric(pattern, raw_text)
-            if result is not None:
+        if result is not None:
                 val, unit = result
                 # Resolve unit
                 if unit is None:
