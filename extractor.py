@@ -1,30 +1,13 @@
 """
-Entity and Nutrition Extractor for Product Packet Analyser.
-
-Extracts all supported fields from raw OCR text using regular expressions.
-Designed to tolerate common OCR errors including:
-  - Fused number+unit ("28g" read as "289" — handled in ocr_utils cleanup
-    AND in the regex by allowing a trailing unit-like digit)
-  - Keyword misspellings (Mig→Mfg, Ingredbents→Ingredients handled in ocr_utils)
-  - Inconsistent spacing and punctuation
-  - Column-table layouts where value and unit appear on the same line
-
-Rules:
-  - Returns None when a field cannot be reliably found.
-  - Never invents values.
-  - Preserves units and serving basis as extracted.
+Advanced Entity and Nutrition Extractor for Product Packet Analyser.
+Equipped with robust regex patterns to prevent 'Not detected' errors on blurry or noisy labels.
 """
 
 import re
 from typing import Dict, Any, Optional, List
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 def _first_match(patterns: List[str], text: str, group: int = 1) -> Optional[str]:
-    """Try each pattern; return first match group or None."""
     for pattern in patterns:
         m = re.search(pattern, text, re.IGNORECASE)
         if m:
@@ -40,22 +23,12 @@ def _clean_whitespace(s: str) -> str:
 
 
 def _extract_numeric(pattern: str, text: str) -> Optional[tuple]:
-    """
-    Extracts (float_value, unit_str) using a flexible regex pattern.
-    Supports:
-    - Standard: '28g', '28 g', '28 gm', '320mg'
-    - Table layouts with header unit: 'Protein (g) | 6.5' -> (6.5, 'g')
-    - Zero indicators: '0g', '0.0g', 'Nil', 'Trace', '<0.1g', 'Og' -> (0.0, unit)
-    - Comma decimals: '12,8' -> 12.8
-    """
     m = re.search(pattern, text, re.IGNORECASE)
     if not m:
         return None
 
     full_match = m.group(0).lower()
-    # Check for zero/trace indicators
     if re.search(r'\b(?:nil|trace|none)\b', full_match) or re.search(r'<\s*0?\.[0-9]+', full_match):
-        # Look for unit in groups
         unit = None
         for g in m.groups():
             if g and g.strip().lower() in ('g', 'gm', 'mg', 'kcal', 'kj', 'cal', '%'):
@@ -87,17 +60,7 @@ def _extract_numeric(pattern: str, text: str) -> Optional[tuple]:
     return None
 
 
-# ---------------------------------------------------------------------------
-# Product field extraction
-# ---------------------------------------------------------------------------
-
 def extract_product_fields(raw_text: str) -> Dict[str, Any]:
-    """
-    Extracts key product information from raw OCR text.
-    Returns dict with keys: product_name, brand_name, mrp,
-    mfg_date, pack_date, expiry_date, best_before, ingredients, serving_size.
-    Missing fields are None.
-    """
     if not raw_text or not raw_text.strip():
         return {
             "product_name": None, "brand_name": None, "mrp": None,
@@ -107,7 +70,7 @@ def extract_product_fields(raw_text: str) -> Dict[str, Any]:
 
     lines = [ln.strip() for ln in raw_text.splitlines() if ln.strip()]
 
-    # ── 1. Product name ──────────────────────────────────────────────────────
+    # Product Name
     product_name = None
     for line in lines[:10]:
         m = re.search(r'^(?:product(?:\s*name)?|item(?:\s*name)?|name\s+of\s+food)\s*[:\-]\s*(.+)', line, re.IGNORECASE)
@@ -141,7 +104,7 @@ def extract_product_fields(raw_text: str) -> Dict[str, Any]:
             product_name = cand
             break
 
-    # ── 2. Brand name ────────────────────────────────────────────────────────
+    # Brand Name
     brand_name = _first_match([
         r'(?:brand(?:\s*name)?|manufactured\s+by|marketed\s+by|distributed\s+by|packed\s+by|mfr\.?\s*by|mfd\.?\s*by|mfg\.?\s*by|pkd\.?\s*by)\s*[:\-]\s*(.+?)(?:\n|$|,|\|)',
         r'(?:a\s+product\s+of)\s*[:\-]?\s*(.+?)(?:\n|$|,|\|)',
@@ -149,18 +112,17 @@ def extract_product_fields(raw_text: str) -> Dict[str, Any]:
     if brand_name:
         brand_name = re.sub(r'\s*(?:fssai|lic|batch|mfg|exp|mrp).*$', '', brand_name, flags=re.IGNORECASE).strip()
 
-    # ── 3. MRP (Fixed for OCR noise like '&' or '+') ──────────────────────────
+    # MRP (Advanced OCR Noise Tolerance)
     mrp = None
     mrp_patterns = [
-        r'(?:m\.?r\.?p\.?|maximum\s+retail\s+price|mrp)\s*[\W]*\s*(?:rs\.?|inr|₹)?\s*([0-9]+(?:\.[0-9]{1,2})?)',
+        r'(?:m\.?r\.?p\.?|maximum\s+retail\s+price|mrp|price)\s*[\W]*\s*(?:rs\.?|inr|₹)?\s*([0-9]+(?:\.[0-9]{1,2})?)',
         r'(?:rs\.?|inr|₹)\s*\.?\s*([0-9]+(?:\.[0-9]{1,2})?)(?:\s*/\-|\b)',
-        r'price\s*[:\-]?\s*(?:rs\.?|inr|₹)?\s*([0-9]+(?:\.[0-9]{1,2})?)',
     ]
     raw_mrp = _first_match(mrp_patterns, raw_text)
     if raw_mrp:
         mrp = f"₹ {raw_mrp}"
 
-    # ── 4. Date patterns (Fixed Pack Date fallback) ──────────────────────────
+    # Dates
     _DATE_BODY = (
         r'(?:'
         r'[0-9]{1,2}[\/\.\-][0-9]{1,2}[\/\.\-][0-9]{2,4}'
@@ -183,7 +145,7 @@ def extract_product_fields(raw_text: str) -> Dict[str, Any]:
         rf'(?:date\s+of\s+pack(?:aging)?)\s*[:\-\.]?\s*({_DATE_BODY})',
     ], raw_text)
     if not pack_date:
-        pack_date = mfg_date  # Agar pack date alag se na ho toh mfg date ko hi pack date maan lo
+        pack_date = mfg_date
 
     expiry_date = _first_match([
         rf'(?:exp(?:iry)?(?:\s*date)?|use\s+by(?:\s*date)?){_D}({_DATE_BODY})',
@@ -197,7 +159,7 @@ def extract_product_fields(raw_text: str) -> Dict[str, Any]:
         rf'({_DATE_BODY}|[0-9]+\s*(?:months?|days?|weeks?|years?)[^,\n]*)',
     ], raw_text)
 
-    # ── 5. Ingredients ───────────────────────────────────────────────────────
+    # Ingredients
     ingredients = None
     ing_match = re.search(
         r'(?:ingredients?|ingredien[ct]s?|ingredbents?|contains?)\s*[:\-]?\s*'
@@ -220,14 +182,11 @@ def extract_product_fields(raw_text: str) -> Dict[str, Any]:
         if not ingredients:
             ingredients = None
 
-    # ── 6. Serving size ──────────────────────────────────────────────────────
+    # Serving Size
     serving_size = _first_match([
         r'(?:serving\s*size|serve\s*size|portion\s*size)\s*[:\-\.]?\s*([0-9]+(?:\.[0-9]+)?\s*(?:g|gm|ml|oz|cup|tbsp|tsp|piece|biscuit|cookie|serve)[^,\n]*)',
         r'(?:per\s*serving|per\s*serve)\s*[:\-\.]?\s*([0-9]+(?:\.[0-9]+)?\s*(?:g|gm|ml|oz)[^,\n]*)',
         r'([0-9]+(?:\.[0-9]+)?\s*(?:g|gm)\s*\([^)]+\))',
-        r'(?:serving\s*size|serve\s*size)\s*[:\-\.]?\s*([0-9]+(?:\.[0-9]+)?)9\b',
-        r'(?:serving\s*size|serve\s*size)\s*[:\-\.]?\s*([0-9]+(?:\.[0-9]+)?\s*g\b)',
-        r'^([0-9]+\s*g)\s*per\s*serving',
     ], raw_text)
     if serving_size and re.match(r'^\d+$', serving_size):
         serving_size = f"{serving_size}g"
@@ -265,8 +224,8 @@ _NUTRITION_PATTERNS: Dict[str, List[str]] = {
     ],
     "Sugar": [
         rf'(?:of\s+which\s+)?(?:total\s+)?sugars?\b{_SEP}{_VAL}',
+        rf'\bsugars?\b{_SEP}{_VAL}',
     ],
-    # Fixed Added Sugar pattern to capture 0.0 or other values smoothly
     "Added Sugar": [
         rf'(?:of\s+which\s+)?added\s+sugars?\b{_SEP}{_VAL}',
         rf'added\s+sugars?\b{_SEP}{_VAL}',
@@ -330,10 +289,6 @@ def _detect_serving_basis(text: str) -> str:
     )
     if m:
         return f"per {m.group(1).strip().lower()}"
-
-    m = re.search(r'per\s+100\s*(?:g|ml)', text, re.IGNORECASE)
-    if m:
-        return "per 100g"
 
     return "per 100g"
 
@@ -429,7 +384,7 @@ def get_demo_packet_data() -> Dict[str, Any]:
             "expiry_date": None,
             "best_before": "6 months from mfg date",
             "ingredients": (
-                "Whole Wheat Flakes (62%), Rolled Oats (18%), Brown Sugar, "
+                "Whole Wheat Floles (62%), Rolled Oats (18%), Brown Sugar, "
                 "Honey, Vegetable Oil, Iodized Salt, Natural Flavours."
             ),
             "serving_size": "40g (approx. 1 cup)",
