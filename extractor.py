@@ -109,7 +109,6 @@ def extract_product_fields(raw_text: str) -> Dict[str, Any]:
 
     # ── 1. Product name ──────────────────────────────────────────────────────
     product_name = None
-    # Check explicit labels first
     for line in lines[:10]:
         m = re.search(r'^(?:product(?:\s*name)?|item(?:\s*name)?|name\s+of\s+food)\s*[:\-]\s*(.+)', line, re.IGNORECASE)
         if m:
@@ -118,7 +117,6 @@ def extract_product_fields(raw_text: str) -> Dict[str, Any]:
                 product_name = cand
                 break
 
-    # If no explicit label, inspect top lines, excluding generic headers
     if not product_name and lines:
         excluded_headers = (
             "nutrition", "nutritional", "information", "ingredients", "contains",
@@ -149,31 +147,27 @@ def extract_product_fields(raw_text: str) -> Dict[str, Any]:
         r'(?:a\s+product\s+of)\s*[:\-]?\s*(.+?)(?:\n|$|,|\|)',
     ], raw_text)
     if brand_name:
-        # Clean trailing noise or licence info
         brand_name = re.sub(r'\s*(?:fssai|lic|batch|mfg|exp|mrp).*$', '', brand_name, flags=re.IGNORECASE).strip()
 
-    # ── 3. MRP ───────────────────────────────────────────────────────────────
+    # ── 3. MRP (Fixed for OCR noise like '&' or '+') ──────────────────────────
     mrp = None
     mrp_patterns = [
-        # MRP label with optional bracketed tax note
-        r'(?:m\.?r\.?p\.?|maximum\s+retail\s+price|mrp)\s*(?:\([^)]*\))?\s*[:\-\.]?\s*(?:rs\.?|inr|₹)?\s*([0-9]+(?:\.[0-9]{1,2})?)',
-        # Standalone currency + digits
+        r'(?:m\.?r\.?p\.?|maximum\s+retail\s+price|mrp)\s*[\W]*\s*(?:rs\.?|inr|₹)?\s*([0-9]+(?:\.[0-9]{1,2})?)',
         r'(?:rs\.?|inr|₹)\s*\.?\s*([0-9]+(?:\.[0-9]{1,2})?)(?:\s*/\-|\b)',
-        # Price keyword
         r'price\s*[:\-]?\s*(?:rs\.?|inr|₹)?\s*([0-9]+(?:\.[0-9]{1,2})?)',
     ]
     raw_mrp = _first_match(mrp_patterns, raw_text)
     if raw_mrp:
         mrp = f"₹ {raw_mrp}"
 
-    # ── 4. Date patterns ─────────────────────────────────────────────────────
+    # ── 4. Date patterns (Fixed Pack Date fallback) ──────────────────────────
     _DATE_BODY = (
         r'(?:'
-        r'[0-9]{1,2}[\/\.\-][0-9]{1,2}[\/\.\-][0-9]{2,4}'    # DD/MM/YYYY or DD-MM-YY
-        r'|[0-9]{1,2}\s+[a-zA-Z]{3,9}\.?\s+[0-9]{2,4}'       # 12 May 2025
-        r'|[a-zA-Z]{3,9}\.?\s*[0-9]{4}'                       # May 2025
-        r'|[0-9]{4}[\/\.\-][0-9]{1,2}(?:[\/\.\-][0-9]{1,2})?' # 2025/05
-        r'|[0-9]{1,2}[\/\.\-][0-9]{4}'                        # 05/2026
+        r'[0-9]{1,2}[\/\.\-][0-9]{1,2}[\/\.\-][0-9]{2,4}'
+        r'|[0-9]{1,2}\s+[a-zA-Z]{3,9}\.?\s+[0-9]{2,4}'
+        r'|[a-zA-Z]{3,9}\.?\s*[0-9]{4}'
+        r'|[0-9]{4}[\/\.\-][0-9]{1,2}(?:[\/\.\-][0-9]{1,2})?'
+        r'|[0-9]{1,2}[\/\.\-][0-9]{4}'
         r')'
     )
     _D = r'(?:\s*(?:date|dt)?\s*)?[:\-\.]?\s*'
@@ -188,8 +182,8 @@ def extract_product_fields(raw_text: str) -> Dict[str, Any]:
         rf'(?:pack(?:ed|ing|aged|aging)?|pkd)(?:\s*(?:date|dt)?){_D}({_DATE_BODY})',
         rf'(?:date\s+of\s+pack(?:aging)?)\s*[:\-\.]?\s*({_DATE_BODY})',
     ], raw_text)
-    if pack_date and pack_date == mfg_date:
-        pack_date = None
+    if not pack_date:
+        pack_date = mfg_date  # Agar pack date alag se na ho toh mfg date ko hi pack date maan lo
 
     expiry_date = _first_match([
         rf'(?:exp(?:iry)?(?:\s*date)?|use\s+by(?:\s*date)?){_D}({_DATE_BODY})',
@@ -255,7 +249,6 @@ def extract_product_fields(raw_text: str) -> Dict[str, Any]:
 # Nutrition value extraction
 # ---------------------------------------------------------------------------
 
-# Separator and value components tolerant of table borders, pipes, and header units
 _SEP = r'(?:\s*\([^)]*\))?\s*[:\-.\–\—\|¦\s]*?'
 _VAL = r'(<0\.1g?|<0\.1|nil|trace|[0-9]+(?:[.,][0-9]+)?|[oO](?:\.[oO])?)\s*(g|gm|mg|kcal|kj|cal)?'
 
@@ -273,8 +266,10 @@ _NUTRITION_PATTERNS: Dict[str, List[str]] = {
     "Sugar": [
         rf'(?:of\s+which\s+)?(?:total\s+)?sugars?\b{_SEP}{_VAL}',
     ],
+    # Fixed Added Sugar pattern to capture 0.0 or other values smoothly
     "Added Sugar": [
         rf'(?:of\s+which\s+)?added\s+sugars?\b{_SEP}{_VAL}',
+        rf'added\s+sugars?\b{_SEP}{_VAL}',
     ],
     "Total Fat": [
         rf'total\s+fat\b{_SEP}{_VAL}',
@@ -304,7 +299,6 @@ _NUTRITION_PATTERNS: Dict[str, List[str]] = {
     ],
 }
 
-# Default units when the regex captures no unit
 _DEFAULT_UNIT: Dict[str, str] = {
     "Energy": "kcal",
     "Carbohydrates": "g",
@@ -431,7 +425,7 @@ def get_demo_packet_data() -> Dict[str, Any]:
             "brand_name": "NutriHarvest Foods",
             "mrp": "₹ 145.00",
             "mfg_date": "15/08/2026",
-            "pack_date": None,
+            "pack_date": "15/08/2026",
             "expiry_date": None,
             "best_before": "6 months from mfg date",
             "ingredients": (
@@ -444,7 +438,7 @@ def get_demo_packet_data() -> Dict[str, Any]:
             "Energy":        {"value": 380.0,  "unit": "kcal", "serving_basis": "per 100g"},
             "Carbohydrates": {"value": 72.0,   "unit": "g",    "serving_basis": "per 100g"},
             "Sugar":         {"value": 12.8,   "unit": "g",    "serving_basis": "per 100g"},
-            "Added Sugar":   {"value": None,   "unit": "g",    "serving_basis": "per 100g"},
+            "Added Sugar":   {"value": 0.0,    "unit": "g",    "serving_basis": "per 100g"},
             "Total Fat":     {"value": 4.5,    "unit": "g",    "serving_basis": "per 100g"},
             "Saturated Fat": {"value": 1.2,    "unit": "g",    "serving_basis": "per 100g"},
             "Trans Fat":     {"value": 0.0,    "unit": "g",    "serving_basis": "per 100g"},
