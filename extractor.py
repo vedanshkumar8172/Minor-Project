@@ -192,7 +192,7 @@ def extract_product_fields(raw_text: str) -> Dict[str, Any]:
         pack_date = None
 
     expiry_date = _first_match([
-        rf'(?:exp(?:iry)?(?:\s*date)?|use\s*by(?:\s*date)?){_D}({_DATE_BODY})',
+        rf'(?:exp(?:iry)?(?:\s*date)?|use\s+by(?:\s*date)?){_D}({_DATE_BODY})',
         rf'(?:expires?|expiry)\s*[:\-\.]?\s*({_DATE_BODY})',
     ], raw_text)
 
@@ -261,7 +261,6 @@ _VAL = r'(<0\.1g?|<0\.1|nil|trace|[0-9]+(?:[.,][0-9]+)?|[oO](?:\.[oO])?)\s*(g|gm
 
 _NUTRITION_PATTERNS: Dict[str, List[str]] = {
     "Energy": [
-        # Explicit kcal match (favours kcal in dual kcal/kJ statements)
         r'energy\b[^\n]*?([0-9]+(?:\.[0-9]+)?)\s*kcal',
         rf'(?:calories?|energy\s+value)\b{_SEP}{_VAL}',
         rf'energy\b{_SEP}{_VAL}',
@@ -322,12 +321,6 @@ _DEFAULT_UNIT: Dict[str, str] = {
 
 
 def _detect_serving_basis(text: str) -> str:
-    """
-    Detect the serving basis declared in the text.
-    Returns a string like "per 100g" or "per 30g".
-    Defaults to "per 100g" if nothing is found.
-    """
-    # Explicit "per 100g" or "per 100ml"
     m = re.search(
         r'(?:per|approx\.?(?:\s+values)?|(?:nutritional\s+)?values?\s*per)\s*'
         r'(100\s*(?:g|ml|gm|gram))',
@@ -336,7 +329,6 @@ def _detect_serving_basis(text: str) -> str:
     if m:
         return f"per {m.group(1).strip().lower()}"
 
-    # Other serving sizes: "per 30g", "per serving (25g)", etc.
     m = re.search(
         r'(?:per|approx\.?(?:\s+values)?|(?:nutritional\s+)?values?\s*per)\s*'
         r'([0-9]+\s*(?:g|ml|gm|gram|serving|pack))',
@@ -353,12 +345,6 @@ def _detect_serving_basis(text: str) -> str:
 
 
 def extract_nutrition_values(raw_text: str) -> Dict[str, Dict[str, Any]]:
-    """
-    Extracts 11 nutrition components from raw OCR text.
-    Returns a dict where each key maps to:
-      { "value": float or None, "unit": str, "serving_basis": str }
-    value=None means the field was not found — never assume zero.
-    """
     nutrients: Dict[str, Dict[str, Any]] = {
         k: {"value": None, "unit": _DEFAULT_UNIT[k], "serving_basis": "per 100g"}
         for k in _NUTRITION_PATTERNS
@@ -372,19 +358,15 @@ def extract_nutrition_values(raw_text: str) -> Dict[str, Dict[str, Any]]:
     for nutrient_key, pattern_list in _NUTRITION_PATTERNS.items():
         for pattern in pattern_list:
             result = _extract_numeric(pattern, raw_text)
-        if result is not None:
+            if result is not None:
                 val, unit = result
-                # Resolve unit
                 if unit is None:
                     unit = _DEFAULT_UNIT[nutrient_key]
                 elif unit == "gm":
                     unit = "g"
                 elif unit == "kj" and nutrient_key == "Energy":
-                    # Convert kJ to kcal
                     val = round(val / 4.184, 1)
                     unit = "kcal"
-
-                # Sanity guard: per-100g nutrient values can't exceed 100g (except energy)
 
                 if unit in ("g",) and val > 100.0:
                     if 100.0 < val <= 1000.0:
@@ -392,7 +374,6 @@ def extract_nutrition_values(raw_text: str) -> Dict[str, Dict[str, Any]]:
                     else:
                         continue
 
-                # Additional plausibility checks to reject OCR artifacts
                 _MAX_PLAUSIBLE = {
                     "Sugar": 100.0, "Added Sugar": 100.0,
                     "Total Fat": 100.0, "Saturated Fat": 60.0,
@@ -417,15 +398,7 @@ def extract_nutrition_values(raw_text: str) -> Dict[str, Dict[str, Any]]:
     return nutrients
 
 
-# ---------------------------------------------------------------------------
-# Demo data
-# ---------------------------------------------------------------------------
-
 def get_demo_packet_data() -> Dict[str, Any]:
-    """
-    Returns sample data for demonstration mode.
-    Explicitly flagged as demo so no real OCR claim is made.
-    """
     demo_text = (
         "GOOD MORNING CRUNCHY WHOLE GRAIN CEREAL\n"
         "Brand: NutriHarvest Foods\n"
