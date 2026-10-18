@@ -385,9 +385,12 @@ def extract_nutrition_values(raw_text: str) -> Dict[str, Dict[str, Any]]:
                     unit = "kcal"
 
                 # Sanity guard: per-100g nutrient values can't exceed 100g (except energy)
-               # Sanity guard: per-100g nutrient values can't exceed 100g (except energy)
-                if unit in ("g",) and val > 100.0:
-                    continue
+
+               if unit in ("g",) and val > 100.0:
+                    if 100.0 < val <= 1000.0:
+                        val = round(val / 10.0, 2)
+                    else
+                        continue
 
                 # Additional plausibility checks to reject OCR artifacts
                 _MAX_PLAUSIBLE = {
@@ -399,7 +402,10 @@ def extract_nutrition_values(raw_text: str) -> Dict[str, Dict[str, Any]]:
                 }
                 if nutrient_key in _MAX_PLAUSIBLE and unit in ("g",):
                     if val > _MAX_PLAUSIBLE[nutrient_key]:
-                        continue
+                        if (val / 10.0) <= _MAX_PLAUSIBLE[nutrient_key]:
+                            val = round(val / 10.0, 2)
+                        else:
+                            continue
 
                 nutrients[nutrient_key] = {
                     "value": val,
