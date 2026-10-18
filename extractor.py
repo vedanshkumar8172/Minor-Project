@@ -256,7 +256,7 @@ def extract_product_fields(raw_text: str) -> Dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 # Separator and value components tolerant of table borders, pipes, and header units
-_SEP = r'(?:\s*\(\s*(g|gm|mg|kcal|kj|cal)\s*\))?\s*[:\-.\–\—\|¦\s]*?'
+_SEP = r'(?:\s*\([^)]*\))?\s*[:\-.\–\—\|¦\s]*?'
 _VAL = r'(<0\.1g?|<0\.1|nil|trace|[0-9]+(?:[.,][0-9]+)?|[oO](?:\.[oO])?)\s*(g|gm|mg|kcal|kj|cal)?'
 
 _NUTRITION_PATTERNS: Dict[str, List[str]] = {
@@ -385,6 +385,7 @@ def extract_nutrition_values(raw_text: str) -> Dict[str, Dict[str, Any]]:
                     unit = "kcal"
 
                 # Sanity guard: per-100g nutrient values can't exceed 100g (except energy)
+               # Sanity guard: per-100g nutrient values can't exceed 100g (except energy)
                 if unit in ("g",) and val > 100.0:
                     continue
 
