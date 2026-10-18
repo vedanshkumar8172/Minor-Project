@@ -386,10 +386,10 @@ def extract_nutrition_values(raw_text: str) -> Dict[str, Dict[str, Any]]:
 
                 # Sanity guard: per-100g nutrient values can't exceed 100g (except energy)
 
-               if unit in ("g",) and val > 100.0:
+                if unit in ("g",) and val > 100.0:
                     if 100.0 < val <= 1000.0:
                         val = round(val / 10.0, 2)
-                    else
+                    else:
                         continue
 
                 # Additional plausibility checks to reject OCR artifacts
