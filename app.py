@@ -846,7 +846,7 @@ BENCHMARK: {row['threshold']}
             else "#FBBF24" if st_type == "warning"
             else "#F1F5F9"
         )
-        with cols_map_b[idx]:
+        with cols_map_b[idx % len(cols_map_b)]:
             st.markdown(f"""<div class="nutrient-metric-box">
 <div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:#A7F3D0; font-weight:700; text-transform:uppercase;">
 {row['nutrient']}
