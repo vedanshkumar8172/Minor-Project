@@ -1,0 +1,80 @@
+﻿Ô£à  PASS  Syntax ÔÇö all six modules compile without error
+Ô£à  PASS  Import ÔÇö all backend modules importable
+Ô£à  PASS  Image validation ÔÇö None ÔåÆ False
+Ô£à  PASS  Image validation ÔÇö unsupported extension rejected
+Ô£à  PASS  Image validation ÔÇö oversized file rejected
+Ô£à  PASS  Extraction ÔÇö product name detected
+Ô£à  PASS  Extraction ÔÇö brand name detected
+Ô£à  PASS  Extraction ÔÇö MRP extracted correctly
+Ô£à  PASS  Extraction ÔÇö manufacturing date detected
+Ô£à  PASS  Extraction ÔÇö best before detected
+Ô£à  PASS  Extraction ÔÇö ingredients detected
+Ô£à  PASS  Extraction ÔÇö serving size detected
+Ô£à  PASS  Extraction ÔÇö empty text returns all None (no crash)
+Ô£à  PASS  Date parsing ÔÇö 'Jan 2026' month-year format
+Ô£à  PASS  Date parsing ÔÇö slash-separated MM/YYYY format
+Ô£à  PASS  Date parsing ÔÇö mfg (2026) and expiry (2027) not confused
+Ô£à  PASS  Nutrition ÔÇö Energy (kcal)
+Ô£à  PASS  Nutrition ÔÇö Carbohydrates
+Ô£à  PASS  Nutrition ÔÇö Sugar not confused with Carbs
+Ô£à  PASS  Nutrition ÔÇö Total Fat
+Ô£à  PASS  Nutrition ÔÇö Saturated Fat
+Ô£à  PASS  Nutrition ÔÇö Trans Fat (zero value)
+Ô£à  PASS  Nutrition ÔÇö Protein
+Ô£à  PASS  Nutrition ÔÇö Dietary Fibre
+Ô£à  PASS  Nutrition ÔÇö Sodium (mg)
+Ô£à  PASS  Nutrition ÔÇö Salt
+Ô£à  PASS  Nutrition ÔÇö Added Sugar extracted when present
+Ô£à  PASS  Nutrition ÔÇö 'gm' normalised to 'g'
+Ô£à  PASS  Nutrition ÔÇö Sugar Ôëá Carbohydrates
+Ô£à  PASS  Nutrition ÔÇö per-serving basis (30g) detected
+Ô£à  PASS  Extraction ÔÇö long ingredients list trimmed safely
+Ô£à  PASS  Nutrition rules ÔÇö Sugar 28g ÔåÆ ABOVE limit
+Ô£à  PASS  Nutrition rules ÔÇö Sugar 5g ÔåÆ WITHIN limit
+Ô£à  PASS  Nutrition rules ÔÇö Protein 2g ÔåÆ BELOW guideline
+Ô£à  PASS  Nutrition rules ÔÇö Protein 8.5g ÔåÆ meets guideline
+Ô£à  PASS  Nutrition rules ÔÇö Trans Fat 0.5g ÔåÆ ABOVE limit
+Ô£à  PASS  Nutrition rules ÔÇö Energy ÔåÆ Informational (no pass/fail)
+Ô£à  PASS  Nutrition rules ÔÇö None value ÔåÆ 'Not detected' (not passing)
+Ô£à  PASS  Nutrition rules ÔÇö Sodium 400mg ÔåÆ WITHIN 600mg limit
+Ô£à  PASS  Nutrition rules ÔÇö Sodium 850mg ÔåÆ ABOVE 600mg limit
+Ô£à  PASS  Nutrition rules ÔÇö Sodium 0.5g (500mg) ÔåÆ WITHIN limit
+Ô£à  PASS  Nutrition rules ÔÇö per-serving basis ÔåÆ 'Needs review'
+Ô£à  PASS  Nutrition rules ÔÇö compare_all_nutrients returns 11 rows (inc. Added Sugar)
+Ô£à  PASS  Demo data ÔÇö all required field and nutrient keys present
+Ô£à  PASS  Demo data ÔÇö explicitly flagged is_demo=True
+Ô£à  PASS  Preprocessing ÔÇö returns PIL Image without crash (OpenCV optional)
+Ô£à  PASS  OCR availability ÔÇö returns correct dict structure
+Ô£à  PASS  OCR extract_raw_text ÔÇö no crash on fake image, honest failure if no Tesseract
+Ô£à  PASS  Risk engine ÔÇö Sugar 30g ÔåÆ HIGH
+Ô£à  PASS  Risk engine ÔÇö Sugar 10g ÔåÆ MODERATE
+Ô£à  PASS  Risk engine ÔÇö Sugar 3g ÔåÆ OK
+Ô£à  PASS  Risk engine ÔÇö None value ÔåÆ UNKNOWN (not OK)
+Ô£à  PASS  Risk engine ÔÇö per-serving basis ÔåÆ UNKNOWN (not compared to per-100g)
+Ô£à  PASS  Risk engine ÔÇö Sodium 850mg ÔåÆ HIGH
+Ô£à  PASS  Risk engine ÔÇö Sodium 0.2g (200mg) ÔåÆ OK
+Ô£à  PASS  Risk engine ÔÇö Trans Fat 3g ÔåÆ HIGH
+Ô£à  PASS  Risk engine ÔÇö Trans Fat 0g ÔåÆ OK
+Ô£à  PASS  Risk engine ÔÇö Saturated Fat HIGH/MODERATE/OK levels correct
+Ô£à  PASS  Risk engine ÔÇö all 6 monitored nutrients appear even when undetected
+Ô£à  PASS  Ingredient flags ÔÇö Palm Oil found ÔåÆ flag raised
+Ô£à  PASS  Ingredient flags ÔÇö Partially Hydrogenated ÔåÆ trans fat flag raised
+Ô£à  PASS  Ingredient flags ÔÇö clean text ÔåÆ no false palm-oil flag
+Ô£à  PASS  Ingredient flags ÔÇö empty text ÔåÆ empty list (no crash)
+Ô£à  PASS  Ingredient flags ÔÇö Maida/Refined Wheat Flour detected
+Ô£à  PASS  Ingredient flags ÔÇö MSG detected
+Ô£à  PASS  Risk engine ÔÇö run_full_risk_analysis returns complete structure
+Ô£à  PASS  Risk engine ÔÇö demo packet: correct MODERATE sugar + ingredient flags
+Ô£à  PASS  Risk engine ÔÇö ingredients-only input: all quant UNKNOWN, ing flags work
+Ô£à  PASS  Risk engine ÔÇö no data at all: returns cleanly without crash
+Ô£à  PASS  Pipeline ÔÇö high-sugar label: Sugar 35g ÔåÆ HIGH
+Ô£à  PASS  Pipeline ÔÇö high-sodium label: Sodium 750mg ÔåÆ HIGH
+Ô£à  PASS  Pipeline ÔÇö high trans-fat label: Trans Fat 3g ÔåÆ HIGH
+Ô£à  PASS  Pipeline ÔÇö ingredient flags from real label text (vanaspati + tartrazine)
+Ô£à  PASS  Pipeline ÔÇö all-missing fields do not crash app or return wrong status
+
+=================================================================
+  Results: 74 passed / 0 failed / 74 total
+=================================================================
+
+  All tests passed. Backend + Risk Engine verified.

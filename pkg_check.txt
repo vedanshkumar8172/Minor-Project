@@ -1,0 +1,10 @@
+﻿Name: pytesseract
+Version: 0.3.13
+Summary: Python-tesseract is a python wrapper for Google's Tesseract-OCR
+Home-page: https://github.com/madmaze/pytesseract
+Author: Samuel Hoffstaetter
+Author-email: samuel@hoffstaetter.com
+License: Apache License 2.0
+Location: C:\Users\pc#\AppData\Local\Programs\Python\Python315\Lib\site-packages
+Requires: packaging, Pillow
+Required-by: 

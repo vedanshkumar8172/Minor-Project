@@ -1,0 +1,69 @@
+﻿============================================================
+1. TESSERACT AVAILABILITY
+   available : True
+   engine    : Tesseract OCR v5.5.3.20260724
+
+2. OCR ON SYNTHETIC LABEL IMAGE
+   OCR success: True
+   OCR text length: 535 chars
+   First 300 chars of OCR output:
+   SUNFEAST DARK FANTASYCHOCO FILLS
+   
+   Brand: ITC Limited
+   
+   Net Weight 300g
+   
+   MRP. Rs 80.00
+   
+   Mfg Date: 0103/2026
+   
+   Best Before: 6 months from date of manufacture
+   
+   Serving Size: 259
+   
+   Ingredients Refined Wheat Flour (Maida), Sugar,
+   
+   Hydrogenated Vegetable Oil Cocoa Powder (3.5%,
+   
+   Invert Syrup Salt Raising Age
+
+3. FIELD EXTRACTION FROM SYNTHETIC TEXT
+   product_name : SUNFEAST DARK FANTASY CHOCO FILLS
+   brand_name   : ITC Limited
+   mrp          : Ôé╣ 80.00
+   mfg_date     : 01/03/2026
+   best_before  : 6 months from date of manufacture
+   serving_size : 25g
+   ingredients  : Refined Wheat Flour (Maida), Sugar, Hydrogenated Vegetable Oil, Cocoa Powder (3.
+   Nutrients:
+     Energy              : value=490.0, unit=kcal, basis=per 100g
+     Carbohydrates       : value=68.0, unit=g, basis=per 100g
+     Sugar               : value=28.0, unit=g, basis=per 100g
+     Added Sugar         : value=None, unit=g, basis=per 100g
+     Total Fat           : value=22.0, unit=g, basis=per 100g
+     Saturated Fat       : value=11.0, unit=g, basis=per 100g
+     Trans Fat           : value=0.0, unit=g, basis=per 100g
+     Protein             : value=6.5, unit=g, basis=per 100g
+     Dietary Fibre       : value=1.5, unit=g, basis=per 100g
+     Sodium              : value=320.0, unit=mg, basis=per 100g
+     Salt                : value=0.8, unit=g, basis=per 100g
+
+4. RISK ENGINE
+   nutrition_available   : True
+   ingredients_available : True
+   has_high_alerts       : True
+   quantitative alerts:
+     Sugar               : HIGH        value=28.0 g per 100g
+     Saturated Fat       : HIGH        value=11.0 g per 100g
+     Trans Fat           : OK          value=0.0 g per 100g
+     Sodium              : MODERATE    value=320.0 mg per 100g
+     Salt                : MODERATE    value=0.8 g per 100g
+     Total Fat           : HIGH        value=22.0 g per 100g
+   ingredient flags: ['Partially Hydrogenated Oil (Trans Fat source)', 'Refined Wheat Flour / Maida', 'Added Sugar (Brown Sugar / Invert Sugar / Dextrose)']
+
+5. EXTRACTION FROM ACTUAL OCR OUTPUT
+   Fields detected    : ['product_name', 'brand_name', 'mrp', 'mfg_date', 'best_before', 'ingredients']
+   Nutrients detected : {'Energy': 490.0, 'Carbohydrates': 68.0, 'Sugar': 28.0, 'Total Fat': 22.0, 'Saturated Fat': 11.0, 'Trans Fat': 0.0, 'Protein': 6.59, 'Dietary Fibre': 15.0, 'Sodium': 320.0, 'Salt': 0.8}
+
+============================================================
+DIAGNOSTIC COMPLETE
