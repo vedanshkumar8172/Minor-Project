@@ -32,7 +32,7 @@ import risk_engine
 # Page Configuration
 # ==============================================================================
 st.set_page_config(
-    page_title=" Food Product Packet Analyser",
+    page_title="Food Product Packet Analyser",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -82,10 +82,10 @@ def render_navbar():
     nav_html = """<div class="vedanshu-nav-bar">
 <div class="brand-wrapper">
 <div class="brand-icon">⚡</div>
-<span class="brand-logo-text">VEDANSHU</span>
+<span class="brand-logo-text">FOOD PACKET ANALYSER</span>
 </div>
 <div style="display:flex; align-items:center;">
-<span class="brand-sub-badge">PRODUCT PACKET ANALYSER</span>
+<span class="brand-sub-badge">AI LABEL DECODER</span>
 </div>
 </div>"""
     st.markdown(nav_html, unsafe_allow_html=True)
@@ -576,7 +576,7 @@ EXTRACTED PRODUCT IDENTITY
 # ==============================================================================
 def render_footer():
     st.markdown("""<div class="vedanshu-footer">
-VEDANSHU &bull; PRODUCT PACKET ANALYSER &bull; INFORMATIONAL PROTOTYPE
+FOOD PACKET ANALYSER &bull; INFORMATIONAL PROTOTYPE
 </div>""", unsafe_allow_html=True)
 
 
