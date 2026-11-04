@@ -1,5 +1,5 @@
 """
-Complete test suite — VEDANSHU Product Packet Analyser backend + risk engine.
+Complete test suite —  Product Packet Analyser backend + risk engine.
 Run from the project directory:
     py test_backend.py
 
