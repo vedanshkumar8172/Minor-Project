@@ -32,7 +32,7 @@ import risk_engine
 # Page Configuration
 # ==============================================================================
 st.set_page_config(
-    page_title="VEDANSHU | Product Packet Analyser",
+    page_title=" Food Product Packet Analyser",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
